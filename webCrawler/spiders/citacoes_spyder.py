@@ -4,7 +4,7 @@ import unidecode
 
 class SpiderCitacoes(scrapy.Spider):
     name = 'citacoes'
-
+    items = []
     start_urls = [
             'http://quotes.toscrape.com/login'
         ]
@@ -32,33 +32,28 @@ class SpiderCitacoes(scrapy.Spider):
             texto=''
             if ((citacao.css('a.tag::text').re(r'life') and citacao.css('small.author::text').re(r'Mark Twain'))
             or citacao.css('span.text::text').re(r'truth')):                
-                items = {
+                item = {
                     "texto" : citacao.css('span.text::text').extract_first(),
                     "autor" : citacao.css('small.author::text').extract_first(),
                     "tags": citacao.css('div.tags a.tag::text').extract(),
                     "pagina": response.url.split("/")[-2],
                     "regra": 'Regra2' if citacao.css('span.text::text').re(r'truth')  else 'Regra1',
                     "nome_arquivo": self.slugify(citacao.css('span.text::text').extract_first()[1:60])+'.txt',
-                }
-
-
-                self.save_file_txt(citacao)
-
+                }     
+                self.items.append(item) 
+                yield item           
+                
         next_page = response.css('li.next a::attr(href)').extract_first()
         if next_page:
             yield scrapy.Request(
                 url=response.urljoin(next_page),
                 callback=self.parse_access,
             )
-        yield doc
-
-    def save_file_txt(self, citacao):
-        texto = citacao.css('span.text::text').extract_first()                 
-        nome_arquivo = self.slugify(texto[1:60])+'.txt'
-        with open(nome_arquivo, 'wb') as f:
-            f.write(texto.encode())
+       
 
     def slugify(self,text):
         text = unidecode.unidecode(text).lower()
         return re.sub(r'[\W_]+', '-', text)
+
+
            

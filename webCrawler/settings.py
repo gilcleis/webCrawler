@@ -88,3 +88,7 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 FEED_EXPORT_ENCODING = 'utf8'
+
+ITEM_PIPELINES = {
+    'webCrawler.pipelines.WebcrawlerPipeline': 300,
+}
