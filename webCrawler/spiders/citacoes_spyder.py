@@ -1,4 +1,6 @@
 import scrapy
+import re
+import unidecode
 
 class SpiderCitacoes(scrapy.Spider):
     name = 'citacoes'
@@ -17,20 +19,46 @@ class SpiderCitacoes(scrapy.Spider):
                 'password': '123456',
                 'csrf_token': token,
             },
-            callback=self.parse_acess,
+            callback=self.parse_access,
         )
 
-    def parse_acess(self, response):
+    def parse_access(self, response):
         has_logout_link = response.css('a[href="/logout"]').extract_first()
         if not has_logout_link:
             raise CloseSpider('**** falha de autenticação ****')
-        self.log('**** acabei de fazer login ****')      
+        self.log('**** acabei de fazer login ****')     
+
         for citacao in response.css('div.quote'):
-            teste =  {
-                "texto" : citacao.css('span.text::text').extract_first(),
-                "autor" : citacao.css('small.author::text').extract_first(),
-                "tags": citacao.css('div.tags a.tag::text').extract(),
-                "pagina": response.url.split("/")[-2],
-                "regra": 'Regra2' if citacao.css('span.text::text').re(r'truth')  else 'Regra1',                
-            }
+            texto=''
+            if ((citacao.css('a.tag::text').re(r'life') and citacao.css('small.author::text').re(r'Mark Twain'))
+            or citacao.css('span.text::text').re(r'truth')):                
+                items = {
+                    "texto" : citacao.css('span.text::text').extract_first(),
+                    "autor" : citacao.css('small.author::text').extract_first(),
+                    "tags": citacao.css('div.tags a.tag::text').extract(),
+                    "pagina": response.url.split("/")[-2],
+                    "regra": 'Regra2' if citacao.css('span.text::text').re(r'truth')  else 'Regra1',
+                    "nome_arquivo": self.slugify(citacao.css('span.text::text').extract_first()[1:60])+'.txt',
+                }
+
+
+                self.save_file_txt(citacao)
+
+        next_page = response.css('li.next a::attr(href)').extract_first()
+        if next_page:
+            yield scrapy.Request(
+                url=response.urljoin(next_page),
+                callback=self.parse_access,
+            )
+        yield doc
+
+    def save_file_txt(self, citacao):
+        texto = citacao.css('span.text::text').extract_first()                 
+        nome_arquivo = self.slugify(texto[1:60])+'.txt'
+        with open(nome_arquivo, 'wb') as f:
+            f.write(texto.encode())
+
+    def slugify(self,text):
+        text = unidecode.unidecode(text).lower()
+        return re.sub(r'[\W_]+', '-', text)
            

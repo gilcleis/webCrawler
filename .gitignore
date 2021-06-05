@@ -1,5 +1,11 @@
 *.json
 *.txt
 *.csv
+*.pyc
 /.idea
 /.vscode
+
+.gitignore
+
+webCrawler/spiders/__pycache__/citacoes_spyder.cpython-38.pyc
+webCrawler/__pycache__/settings.cpython-38.pyc
