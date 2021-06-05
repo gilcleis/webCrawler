@@ -1,4 +1,4 @@
-# Crud_API
+# webCrawler
 Um projeto para criar uma spider com o framework Scrapy.
 
 ## Instalação
