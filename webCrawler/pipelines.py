@@ -16,6 +16,6 @@ class WebcrawlerPipeline:
         return item
     
     def save_file_txt(self, texto,nome_arquivo):        
-        with open(nome_arquivo+'.txt', 'wb') as f:
+        with open(nome_arquivo, 'wb') as f:
             f.write(texto.encode())
 
