@@ -1,6 +1,7 @@
 import scrapy
 import re
 import unidecode
+import pandas as pd
 
 class SpiderCitacoes(scrapy.Spider):
     name = 'citacoes'
@@ -33,11 +34,11 @@ class SpiderCitacoes(scrapy.Spider):
             if ((citacao.css('a.tag::text').re(r'life') and citacao.css('small.author::text').re(r'Mark Twain'))
             or citacao.css('span.text::text').re(r'truth')):                
                 item = {
-                    "texto" : citacao.css('span.text::text').extract_first(),
+                    "texto" : (citacao.css('span.text::text').extract_first()),
                     "autor" : citacao.css('small.author::text').extract_first(),
                     "tags": citacao.css('div.tags a.tag::text').extract(),
-                    "pagina": response.url.split("/")[-2],
-                    "regra": 'Regra2' if citacao.css('span.text::text').re(r'truth')  else 'Regra1',
+                    "numero_pagina": response.url.split("/")[-2],
+                    "numero_regra": 1 if (citacao.css('a.tag::text').re(r'life') and citacao.css('small.author::text').re(r'Mark Twain'))  else 2,
                     "nome_arquivo": self.slugify(citacao.css('span.text::text').extract_first()[1:60])+'.txt',
                 }     
                 self.items.append(item) 
@@ -49,6 +50,8 @@ class SpiderCitacoes(scrapy.Spider):
                 url=response.urljoin(next_page),
                 callback=self.parse_access,
             )
+        df = pd.DataFrame(self.items, columns=[ 'autor','tags', 'numero_pagina', 'numero_regra','nome_arquivo'])
+        yield df.to_csv('citacoes.csv', sep = ';', mode = 'w', decimal='.',header = True, encoding="utf-8-sig")
        
 
     def slugify(self,text):
