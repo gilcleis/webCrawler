@@ -15,6 +15,10 @@ Projeto desenvolvido em Python Versão 3.8
 
 ### Pré-requisito
 
+- Clone o repositório com __git clone__
+```
+git clone https://github.com/gilcleis/webCrawler.git
+```
 - Execute o comando 
 ```
  pip install scrapy
